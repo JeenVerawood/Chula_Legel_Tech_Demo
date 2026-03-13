@@ -37,7 +37,19 @@ const meetingItems = [
         location: "ณ ห้องประชุมบอร์ดรูม",
         tags: ["red", "blue"],
     },
+    {
+        title: "พิจารณากำหนดค่าตอบแทนคณะกรรมการบริษัท ประจำปี 2569",
+        company: "ABC จำกัด",
+        type: "การประชุมคณะกรรมการ",
+        no: "2/2569",
+        date: "25 มกราคม 2569",
+        time: "13:30 น. - 16:30 น.",
+        location: "ณ ห้องประชุมบอร์ดรูม",
+        tags: ["red", "blue"],
+    },
 ];
+
+
 
 export default function SummaryPage() {
     return (
@@ -62,11 +74,21 @@ export default function SummaryPage() {
                 </motion.button>
             </header>
 
-            <div className="summary-cards-grid">
-                {meetingItems.map((item, index) => (
-                    <MeetingSummaryCard key={index} meeting={item} index={index} />
-                ))}
+            <div className="flex gap-6 mt-6">
+                <div className="w-76 h-[600px] rounded-lg overflow-y-auto overflow-x-hidden scroll-container ">
+                    <div className="flex flex-col gap-6"> 
+                        {meetingItems.map((item, index) => (
+                            <div key={index} className="mb-2 "> {/* ใส่ mb-2 หรือเพิ่ม padding ช่วยอีกชั้น */}
+                                <MeetingSummaryCard meeting={item} index={index} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="flex-1 bg-white border border-gray-200 rounded-lg p-6">
+                    {/* ใส่เนื้อหารายละเอียดการประชุมของคุณที่นี่ */}
+                </div>
             </div>
+
         </motion.div>
     );
 }
