@@ -51,12 +51,7 @@ export default function QuizPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
-            <header className="create-form-header">
-                <Link href="/" className="create-form-back">
-                    <ChevronLeft size={22} />
-                    <h1>ตอบคำถามเพื่อเริ่มสร้างประชุม ({step + 1}/{questions.length})</h1>
-                </Link>
-            </header>
+        
 
             <div className="create-form-card">
                 <AnimatePresence mode="wait">
@@ -67,7 +62,10 @@ export default function QuizPage() {
                         exit={{ opacity: 0, x: -10 }}
                         className="create-form-field"
                     >
-                        <label className="block mb-4 text-gray-700 font-medium">{currentQuestion.title}</label>
+                        <div className="flex justify-between">
+                            <label className="block mb-4 text-gray-700 font-medium">{currentQuestion.title}</label>
+                            <h1 className=" text-sm  text-gray-400">({step + 1}/{questions.length})</h1>
+                        </div>
                         
                         {currentQuestion.type === "input" ? (
                             <div className="flex flex-col gap-2">
@@ -81,7 +79,7 @@ export default function QuizPage() {
                                     }} 
                                 />
                                 {errorMsg && (
-                                    <span className="create-form-error flex items-center gap-1 mt-1">
+                                    <span className="create-form-error flex items-center gap-1">
                                         <AlertCircle size={12} /> {errorMsg}
                                     </span>
                                 )}

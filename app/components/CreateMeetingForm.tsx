@@ -108,6 +108,13 @@ export default function CreateMeetingForm() {
         setErrors((prev) => ({ ...prev, signature: false }));
     };
 
+    const handleReset = () => {
+        if (confirm("คุณต้องการล้างข้อมูลทั้งหมดและเริ่มสร้างการประชุมใหม่ใช่หรือไม่?")) {
+            localStorage.removeItem("meeting_draft");
+            window.location.reload();
+        }
+    };
+
     const closeAllDropdowns = () => {
         setIsOpen1(false);
         setIsOpen2(false);
@@ -184,7 +191,7 @@ export default function CreateMeetingForm() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-        >
+        >   
             <div className="create-form-calendar-header">
                 <button onClick={() => changeMonth(-1)} className="create-form-calendar-nav">
                     <ChevronLeft size={18} />
@@ -238,6 +245,19 @@ export default function CreateMeetingForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
+              <div className="flex justify-between items-center mb-6">
+                <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition">
+                    <ChevronLeft size={20} />
+                    <span>ย้อนกลับ</span>
+                </Link>
+                <button 
+                    onClick={handleReset}
+                    className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 transition px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50"
+                >
+                    <RotateCcw size={14} />
+                    สร้างการประชุมใหม่
+                </button>
+            </div>
             <div className="create-form-card">
                 {/* 1. Company type */}
                 <div className="create-form-field">
