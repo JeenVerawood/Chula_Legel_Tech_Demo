@@ -3,6 +3,15 @@
 import { User } from "lucide-react";
 import { motion } from "framer-motion";
 
+// เพิ่มโครงสร้างข้อมูลใหม่เข้าไปใน Interface
+interface AgendaItem {
+    title: string;
+    topic: string;
+    result?: string;    // เติม ? ให้เป็น optional
+    discussion?: string; // เติม ? ให้เป็น optional
+    warning?: string;    // เติม ? ให้เป็น optional
+}
+
 interface MeetingData {
     title: string;
     company?: string;
@@ -12,12 +21,14 @@ interface MeetingData {
     time?: string;
     location?: string;
     tags: string[];
+    closing?: string;    // เนื้อหาตอนปิดประชุม
+    agenda?: AgendaItem[]; // รายละเอียดวาระ
 }
 
 interface MeetingSummaryCardProps {
     meeting: MeetingData;
     index: number;
-    onClick?: () => void; // เพิ่ม onClick สำหรับเลือกรายการ
+    onClick?: () => void;
 }
 
 export default function MeetingSummaryCard({ meeting, index, onClick }: MeetingSummaryCardProps) {
@@ -31,28 +42,18 @@ export default function MeetingSummaryCard({ meeting, index, onClick }: MeetingS
     return (
         <motion.div
             className="summary-card-wrapper cursor-pointer"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: index * 0.05 }}
             onClick={onClick}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+
         >
             <div className="summary-card-tags">
                 {meeting.tags.map((tag, i) => (
-                    <div
-                        key={`${tag}-${i}`}
-                        className="summary-card-tag"
-                        style={{ backgroundColor: tagColors[tag] || tag }}
-                    />
+                    <div key={i} className="summary-card-tag" style={{ backgroundColor: tagColors[tag] || tag }} />
                 ))}
             </div>
 
             <div className="summary-card-body">
                 <div className="summary-card-header">
-                    <div className="summary-card-avatar">
-                        <User size={24} strokeWidth={1.5} />
-                    </div>
+                    <div className="summary-card-avatar"><User size={24} strokeWidth={1.5} /></div>
                     <h3 className="summary-card-title">{meeting.title}</h3>
                 </div>
 
