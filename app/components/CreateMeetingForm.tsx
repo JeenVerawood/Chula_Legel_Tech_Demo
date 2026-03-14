@@ -233,18 +233,11 @@ export default function CreateMeetingForm() {
 
     return (
         <motion.div
-            className="create-form-wrapper"
+            className="max-w-2xl mx-auto mt-10 px-4"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
-            <header className="create-form-header">
-                <Link href="/" className="create-form-back">
-                    <ChevronLeft size={22} />
-                    <h1>สร้างหนังสือเชิญประชุม</h1>
-                </Link>
-            </header>
-
             <div className="create-form-card">
                 {/* 1. Company type */}
                 <div className="create-form-field">
