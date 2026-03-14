@@ -1,9 +1,11 @@
 export interface Question {
     id: number;
     title: string;
-    type?: "input" | "options"; // ระบุประเภทให้ชัดเจน
+    type?: "input" | "options" | "agenda";
     placeholder?: string;
     options?: string[];
+    // เพิ่มบรรทัดนี้:
+    [key: string]: any; 
 }
 export const questions = [
    {

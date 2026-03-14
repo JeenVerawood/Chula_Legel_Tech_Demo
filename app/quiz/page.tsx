@@ -87,7 +87,7 @@ export default function QuizPage() {
                                     {["regularAgendas", "specialAgendas"].map((type) => (
                                         <div key={type}>
                                             <h3 className="font-bold mb-3">{type === "regularAgendas" ? "มติธรรมดา" : "มติพิเศษ"}</h3>
-                                            {currentQuestion[type].map((item: string) => (
+                                                {(currentQuestion as any)[type]?.map((item: string) => (
                                                 <label key={item} className="flex items-center gap-3 py-2 cursor-pointer">
                                                     <input type="checkbox" onChange={() => toggleAgenda(item)} checked={selectedAgendas.includes(item)} />
                                                     {item}
