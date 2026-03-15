@@ -3,8 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { questions } from "../data/questions";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, ChevronLeft } from "lucide-react";
-import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 
 export default function QuizPage() {
     const router = useRouter();
@@ -13,26 +12,38 @@ export default function QuizPage() {
     const [inputValue, setInputValue] = useState("");
     const [selectedAgendas, setSelectedAgendas] = useState<string[]>([]);
     const [errorMsg, setErrorMsg] = useState("");
-
+    
     const currentQuestion = questions[step];
     const authorizedNames = ["สมชาย ใจดี", "วิภา เรียนรู้", "จีน"];
 
-    const handleNext = (valueToSave: any) => {
-        const finalValue = valueToSave || inputValue;
-        if (currentQuestion?.type === "input" && !authorizedNames.includes(finalValue.trim())) {
-            setErrorMsg("ไม่มีอำนาจในการสร้างประชุม");
-            return;
+    const handleNext = (value: any) => {
+        // 1. เก็บคำตอบข้อปัจจุบันเข้าใน Object answers
+        const newAnswers = { ...answers, [currentQuestion.id]: value };
+        setAnswers(newAnswers);
+            if (currentQuestion.type === "input") {
+            const trimmedValue = value.trim();
+
+            // เช็คว่าไม่ได้ใส่ค่าอะไรเลย
+            if (!trimmedValue) {
+                setErrorMsg("กรุณากรอกชื่อ");
+                return;
+            }
+
+            // เช็คว่าชื่อตรงกับที่กำหนดไหม
+            if (!authorizedNames.includes(trimmedValue)) {
+                setErrorMsg("ไม่มีอำนาจในการสร้างประชุม");
+                return;
+            }
         }
 
-        const newAnswers = { ...answers, [currentQuestion.id]: finalValue };
-        
+        // 2. ถ้ายังไม่ถึงข้อสุดท้าย ให้ไปข้อถัดไป
         if (step < questions.length - 1) {
-            setAnswers(newAnswers);
             setStep((prev) => prev + 1);
             setInputValue("");
             setSelectedAgendas([]);
             setErrorMsg("");
         } else {
+            // 3. ข้อสุดท้าย: บันทึก Object answers ทั้งหมดลง localStorage
             localStorage.setItem("meeting_draft", JSON.stringify(newAnswers));
             router.push("/create-meeting"); 
         }
@@ -44,6 +55,9 @@ export default function QuizPage() {
         );
     };
 
+    // ป้องกัน Error กรณี currentQuestion หายไปชั่วขณะ
+    if (!currentQuestion) return null;
+
     return (
         <motion.div 
              className="max-w-2xl mx-auto mt-10 px-4"
@@ -51,8 +65,6 @@ export default function QuizPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
-        
-
             <div className="create-form-card">
                 <AnimatePresence mode="wait">
                     <motion.div 
@@ -63,8 +75,10 @@ export default function QuizPage() {
                         className="create-form-field"
                     >
                         <div className="flex justify-between">
-                            <label className="block mb-4 text-gray-700 font-medium">{currentQuestion.title}</label>
-                            <h1 className=" text-sm  text-gray-400">({step + 1}/{questions.length})</h1>
+                           <label className="block mb-4 text-gray-700 font-medium">
+                                {currentQuestion.title}
+                            </label>
+                            <h1 className="text-sm text-gray-400">({step + 1}/{questions.length})</h1>
                         </div>
                         
                         {currentQuestion.type === "input" ? (
@@ -90,7 +104,9 @@ export default function QuizPage() {
                                 <div className="create-form-agendas">
                                     {["regularAgendas", "specialAgendas"].map((type) => (
                                         <div key={type} className="mb-4">
-                                            <h3 className="font-bold text-sm mb-2 uppercase text-gray-500">{type === "regularAgendas" ? "มติธรรมดา" : "มติพิเศษ"}</h3>
+                                            <h3 className="font-bold text-sm mb-2 uppercase text-gray-500">
+                                                {type === "regularAgendas" ? "มติธรรมดา" : "มติพิเศษ"}
+                                            </h3>
                                             {(currentQuestion as any)[type]?.map((item: string) => (
                                                 <label key={item} className="flex items-center gap-3 py-2 cursor-pointer border-b border-gray-50 last:border-0">
                                                     <input type="checkbox" onChange={() => toggleAgenda(item)} checked={selectedAgendas.includes(item)} />

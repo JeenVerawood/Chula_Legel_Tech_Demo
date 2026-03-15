@@ -11,7 +11,7 @@ import {
     RotateCcw,
     PenTool,
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -50,7 +50,17 @@ export default function CreateMeetingForm() {
         new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) =>
         new Date(year, month, 1).getDay();
-
+    useEffect(() => {
+        const draft = localStorage.getItem("meeting_draft");
+        if (draft) {
+            const savedData = JSON.parse(draft);
+            
+            // ใช้ ID ให้ตรงกับที่ตั้งไว้ใน questions.ts
+            if (savedData["1"]) setSelected2(savedData["1"]); // ประเภทประชุม
+            if (savedData["2"]) setCallerName(savedData["2"]); // ชื่อผู้เรียก
+            if (savedData["3"]) setAgendas(savedData["3"]);    // วาระการประชุม
+        }
+    }, []);
     const changeMonth = (offset: number) => {
         setCurrentMonth(
             new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1)
@@ -90,7 +100,7 @@ export default function CreateMeetingForm() {
         setShowCalendarSent(false);
         setErrors((prev) => ({ ...prev, dateSent: false }));
     };
-
+        
     const addAgenda = () => setAgendas([...agendas, ""]);
     const updateAgenda = (index: number, value: string) => {
         const newAgendas = [...agendas];
@@ -321,9 +331,9 @@ export default function CreateMeetingForm() {
                             <span className={selected2 ? "" : "create-form-placeholder"}>
                                 {selected2 || "คลิกเลือกประเภท..."}
                             </span>
-                            <ChevronDown size={18} />
+                            {/* <ChevronDown size={18} /> */}
                         </button>
-                        {isOpen2 && (
+                        {/* {isOpen2 && (
                             <motion.div
                                 className="create-form-dropdown"
                                 initial={{ opacity: 0, y: -4 }}
@@ -343,7 +353,7 @@ export default function CreateMeetingForm() {
                                     </button>
                                 ))}
                             </motion.div>
-                        )}
+                        )} */}
                     </div>
                 </div>
 
@@ -351,23 +361,11 @@ export default function CreateMeetingForm() {
                 <div className="create-form-field">
                     <div className="create-form-field-header">
                         <label>ผู้เรียกประชุม</label>
-                        {errors.caller && (
-                            <span className="create-form-error">
-                                <AlertCircle size={12} /> จำเป็น
-                            </span>
-                        )}
                     </div>
-                    <input
-                        type="text"
-                        value={callerName}
-                        placeholder="ชื่อบริษัท หรือ ชื่อผู้เรียก..."
-                        onChange={(e) => {
-                            setCallerName(e.target.value);
-                            setErrors({ ...errors, caller: false });
-                        }}
-                        className={`create-form-input ${errors.caller ? "create-form-input-error" : ""}`}
-                    />
-                </div>
+                    <div className="create-form-input bg-gray-50 text-gray-700">
+                        {callerName || <span className="text-gray-400">ไม่มีข้อมูลจากหน้า Quiz</span>}
+                    </div>
+                </div>  
 
                 {/* 4. Subject */}
                 <div className="create-form-field">
@@ -519,50 +517,19 @@ export default function CreateMeetingForm() {
                 <div className="create-form-field">
                     <div className="create-form-field-header">
                         <label>วาระการประชุม</label>
-                        {errors.agendas && (
-                            <span className="create-form-error">
-                                <AlertCircle size={12} /> กรุณากรอกวาระ
-                            </span>
+                    </div>
+                    <div className="bg-gray-50  p-4 rounded-lg border  border-gray-100">
+                        {agendas.length > 0 ? (
+                            <ul className="list-decimal pl-5 text-sm space-y-1 ">
+                                {agendas.map((agenda, index) => (
+                                    <li key={index} className="text-gray-700">{agenda}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <span className="text-gray-400 text-sm">ไม่มีข้อมูลวาระ...</span>
                         )}
                     </div>
-                    <div className="create-form-agendas">
-                        {agendas.map((agenda, index) => (
-                            <motion.div
-                                key={index}
-                                className="create-form-agenda-row"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <div className="create-form-agenda-input-wrapper">
-                                    <span className="create-form-agenda-number">{index + 1}.</span>
-                                    <input
-                                        type="text"
-                                        value={agenda}
-                                        placeholder={`วาระที่ ${index + 1}...`}
-                                        onChange={(e) => updateAgenda(index, e.target.value)}
-                                        className={`create-form-input create-form-agenda-input ${errors.agendas && !agenda.trim() ? "create-form-input-error" : ""}`}
-                                    />
-                                </div>
-                                {agendas.length > 1 && (
-                                    <button
-                                        onClick={() => removeAgenda(index)}
-                                        className="create-form-agenda-remove"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                )}
-                            </motion.div>
-                        ))}
-                        <button onClick={addAgenda} className="create-form-agenda-add">
-                            <div className="create-form-agenda-add-icon">
-                                <Plus size={16} />
-                            </div>
-                            <span>เพิ่มวาระการประชุม</span>
-                        </button>
-                    </div>
                 </div>
-
                 <div className="create-form-divider" />
 
                 {/* 10. Signer */}

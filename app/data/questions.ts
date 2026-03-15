@@ -4,14 +4,13 @@ export interface Question {
     type?: "input" | "options" | "agenda";
     placeholder?: string;
     options?: string[];
-    // เพิ่มบรรทัดนี้:
     [key: string]: any; 
 }
 export const questions = [
    {
         id: 1,
         title: "นัดประชุม ต้องประชุมเพราะอะไร",
-        type: "options", // เพิ่มตรงนี้!
+        type: "options", 
         options: ["ประชุมสามัญ (AGM)", "ประชุมวิสามัญ (EGM)"]
     },
     {
