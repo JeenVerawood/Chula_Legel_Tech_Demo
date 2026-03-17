@@ -272,44 +272,13 @@ export default function CreateMeetingForm() {
                 {/* 1. Company type */}
                 <div className="create-form-field">
                     <div className="create-form-field-header">
-                        <label>เลือกประเภทบริษัท</label>
-                        {errors.companyType && (
-                            <span className="create-form-error">
-                                <AlertCircle size={12} /> จำเป็น
-                            </span>
-                        )}
+                        <label>ชื่อบริษัท</label>
                     </div>
                     <div className="create-form-select-wrapper">
-                        <button
-                            onClick={() => { closeAllDropdowns(); setIsOpen1(!isOpen1); }}
-                            className={`create-form-select ${errors.companyType ? "create-form-select-error" : ""}`}
-                        >
-                            <span className={selected1 ? "" : "create-form-placeholder"}>
-                                {selected1 || "คลิกเลือกประเภทบริษัท..."}
-                            </span>
-                            <ChevronDown size={18} />
-                        </button>
-                        {isOpen1 && (
-                            <motion.div
-                                className="create-form-dropdown"
-                                initial={{ opacity: 0, y: -4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                {options1.map((opt) => (
-                                    <button
-                                        key={opt}
-                                        onClick={() => {
-                                            setSelected1(opt);
-                                            setIsOpen1(false);
-                                            setErrors({ ...errors, companyType: false });
-                                        }}
-                                        className="create-form-dropdown-item"
-                                    >
-                                        {opt}
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
+                        <div className="create-form-select">
+                              <h1>Legal Tech จำกัด.</h1>
+                        </div>
+
                     </div>
                 </div>
 

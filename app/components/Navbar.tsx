@@ -82,9 +82,9 @@ export default function Navbar() {
                     </Link>
                 </div>
 
-                <div className="navbar-right">
+                {/* <div className="navbar-right">
                     <span className="navbar-brand-text">custom for Charoen Pokphand Group Co., Ltd.</span>
-                </div>
+                </div> */}
             </div>
         </nav>
     );
