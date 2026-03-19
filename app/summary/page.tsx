@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Share2, ChevronDown, Check, Download } from "lucide-react";
+import { ChevronLeft, Share2, ChevronDown, Check, Download, Play, Pause, Volume2 } from "lucide-react";
 import Link from "next/link";
 import MeetingSummaryCard from "../components/MeetingSummaryCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -81,6 +81,96 @@ function LanguageDropdown({
     );
 }
 
+// ── Audio Play Button Component ───────────────────────────────
+function AudioPlayButton({ audioUrl }: { audioUrl?: string }) {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // หยุดเสียงเมื่อ audioUrl เปลี่ยน (เปลี่ยน card)
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+        setIsPlaying(false);
+
+        if (audioUrl) {
+            audioRef.current = new Audio(audioUrl);
+            // เมื่อเล่นจบให้ reset
+            audioRef.current.addEventListener("ended", () => setIsPlaying(false));
+        } else {
+            audioRef.current = null;
+        }
+
+        return () => {
+            audioRef.current?.pause();
+        };
+    }, [audioUrl]);
+
+    const handleToggle = () => {
+        if (!audioRef.current) return;
+
+        if (isPlaying) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+        } else {
+            audioRef.current.play();
+            setIsPlaying(true);
+        }
+    };
+
+    const hasAudio = !!audioUrl;
+
+    return (
+        <motion.button
+            whileHover={{ scale: hasAudio ? 1.05 : 1 }}
+            whileTap={{ scale: hasAudio ? 0.95 : 1 }}
+            onClick={handleToggle}
+            disabled={!hasAudio}
+            title={
+                !hasAudio
+                    ? "ไม่มีไฟล์เสียง"
+                    : isPlaying
+                        ? "หยุดเสียง"
+                        : "เล่นเสียง"
+            }
+            className={`
+                flex items-center justify-center w-8 h-8 rounded-lg border transition-all shadow-sm
+                ${!hasAudio
+                    ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
+                    : isPlaying
+                        ? "border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100"
+                        : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                }
+            `}
+        >
+            <AnimatePresence mode="wait">
+                {isPlaying ? (
+                    <motion.div
+                        key="pause"
+                        initial={{ scale: 0.7, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.7, opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                    >
+                        <Pause size={14} />
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="play"
+                        initial={{ scale: 0.7, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.7, opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                    >
+                        <Volume2 size={14} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.button>
+    );
+}
+
 // ── Agenda Item with language-aware content ───────────────────
 function AgendaCard({ item }: { item: AgendaTranslation }) {
     return (
@@ -117,13 +207,9 @@ export default function SummaryPage() {
     const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem>(meetingItems[0]);
     const [language, setLanguage] = useState<LanguageKey>("central");
 
-    // ดึง translation ของการประชุมที่เลือก + ภาษาที่เลือก
     const translation = meetingTranslations[selectedMeeting.no]?.[language];
-
-    // วาระที่จะแสดง: ถ้ามี translation ให้ใช้ ถ้าไม่มีให้ใช้ข้อมูลเดิม
     const displayAgendas: AgendaTranslation[] =
         translation?.agenda ?? selectedMeeting.agenda ?? [];
-
     const displayClosing = translation?.closing ?? selectedMeeting.closing;
 
     return (
@@ -169,17 +255,22 @@ export default function SummaryPage() {
                         <MeetingDetailView meeting={selectedMeeting} />
                     </div>
 
-                    {/* คอลัมน์ 2: สรุปวาระ + language dropdown */}
+                    {/* คอลัมน์ 2: สรุปวาระ + language dropdown + audio */}
                     <div className="w-96 bg-white border border-gray-200 rounded-2xl mt-5 p-6 shadow-sm flex flex-col h-[600px]">
 
-                        {/* Header + dropdown */}
+                        {/* Header + controls */}
                         <div className="flex justify-between items-center mb-4 flex-shrink-0">
                             <h3 className="font-bold text-lg">สรุปวาระต่างๆ</h3>
                             <div className="flex items-center gap-2">
+                                {/* Language Dropdown */}
                                 <LanguageDropdown
                                     selected={language}
                                     onChange={(key) => setLanguage(key)}
                                 />
+
+                                {/* ── ปุ่มเล่นเสียง (ข้างๆ language dropdown) ── */}
+                                <AudioPlayButton audioUrl={selectedMeeting.audioUrl} />
+
                                 {/* Download */}
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
@@ -190,6 +281,7 @@ export default function SummaryPage() {
                                 >
                                     <Download size={14} />
                                 </motion.button>
+
                                 {/* Share */}
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
@@ -233,7 +325,6 @@ export default function SummaryPage() {
                                         <AgendaCard key={i} item={item} />
                                     ))}
 
-                                    {/* ปิดประชุม */}
                                     {displayClosing && (
                                         <div className="mt-4 pt-4 border-t border-gray-100">
                                             <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">

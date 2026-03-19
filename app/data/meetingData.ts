@@ -26,6 +26,7 @@ export interface MeetingItem {
     tags: string[];
     agenda: AgendaItem[];
     closing: string;
+    audioUrl?: string; // ← เพิ่ม optional audio URL
 }
 
 export const meetingItems: MeetingItem[] = [
@@ -38,6 +39,7 @@ export const meetingItems: MeetingItem[] = [
         time: "14:00 น. - 16:00 น.",
         location: "ห้องประชุม 2",
         tags: ["red", "yellow"],
+        audioUrl: "/mp3/test.mp3", // ← ตัวอย่าง URL สำหรับไฟล์เสียง
         agenda: [
             {
                 title: "วาระที่ 1",
@@ -71,6 +73,7 @@ export const meetingItems: MeetingItem[] = [
         time: "10:00 น. - 12:00 น.",
         location: "ห้องประชุมใหญ่ ชั้น 15",
         tags: ["green", "blue"],
+        audioUrl: "/audio/meeting-2.mp3",
         agenda: [
             {
                 title: "วาระที่ 1",
@@ -94,6 +97,7 @@ export const meetingItems: MeetingItem[] = [
         time: "13:30 น. - 15:00 น.",
         location: "ห้องประชุมบอร์ดรูม",
         tags: ["yellow", "red"],
+        audioUrl: "/audio/meeting-3.mp3",
         agenda: [
             {
                 title: "วาระที่ 1",
@@ -117,6 +121,7 @@ export const meetingItems: MeetingItem[] = [
         time: "09:00 น. - 17:00 น.",
         location: "ออนไลน์ (Zoom)",
         tags: ["blue", "green"],
+        audioUrl: "/audio/meeting-4.mp3",
         agenda: [
             {
                 title: "วาระที่ 1",
