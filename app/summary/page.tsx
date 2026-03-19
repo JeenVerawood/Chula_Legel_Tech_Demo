@@ -1,115 +1,131 @@
 "use client";
 
-import { ChevronLeft, Share2 } from "lucide-react";
+import { ChevronLeft, Share2, ChevronDown, Check, Download } from "lucide-react";
 import Link from "next/link";
 import MeetingSummaryCard from "../components/MeetingSummaryCard";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
 import MeetingDetailView from "../components/MeetingDetailView";
+import { meetingItems, type MeetingItem } from "../data/meetingData";
+import {
+    meetingTranslations,
+    languageOptions,
+    type LanguageKey,
+    type AgendaTranslation,
+} from "../data/meetingTranslations";
 
-// TODO [BACKEND]: Replace with GET /api/meetings?status=completed — see HANDOFF.md
-const meetingItems = [
-    {
-        title: "พิจารณารับรองรายงานการประชุมผู้ถือหุ้นครั้งก่อน",
-        company: "ABC จำกัด",
-        type: "การประชุมสามัญประจำปี",
-        no: "1/2569",
-        date: "24 มกราคม 2569",
-        time: "14:00 น. - 16:00 น.",
-        location: "ห้องประชุม 2",
-        tags: ["red", "yellow"],
-        agenda: [
-            { title: "วาระที่ 1", topic: "พิจารณารับรองรายงานการประชุมครั้งที่ผ่านมา", result: "ที่ประชุมมีมติรับรองรายงานการประชุมครั้งที่ผ่านมาเป็นเอกฉันท์" },
-            { title: "วาระที่ 2", topic: "พิจารณาแนวทางการดำเนินโครงการใหม่", discussion: "มีการอภิปรายถึงงบประมาณลงทุน", warning: "ควรตรวจสอบความเสี่ยงด้านสภาพคล่องเพิ่มเติม" }
-        ],
-        closing: "ประธานกล่าวขอบคุณผู้ถือหุ้นที่ให้ความไว้วางใจในการดำเนินงานของบริษัท"
-    },
-    {
-        title: "พิจารณาอนุมัติงบการเงินประจำปี สิ้นสุดวันที่ 31 ธันวาคม 2568",
-        company: "XYZ โฮลดิ้ง",
-        type: "การประชุมสามัญประจำปี",
-        no: "2/2569",
-        date: "15 กุมภาพันธ์ 2569",
-        time: "10:00 น. - 12:00 น.",
-        location: "ห้องประชุมใหญ่ ชั้น 15",
-        tags: ["green", "blue"],
-        agenda: [
-            { title: "วาระที่ 1", topic: "พิจารณาอนุมัติงบการเงิน", result: "ที่ประชุมอนุมัติงบการเงินตามที่ผู้สอบบัญชีเสนอ" },
-            { title: "วาระที่ 2", topic: "พิจารณาจัดสรรกำไรสุทธิ", result: "อนุมัติการจ่ายเงินปันผลหุ้นละ 0.50 บาท" }
-        ],
-        closing: "ประธานแจ้งกำหนดการจ่ายเงินปันผลในวันที่ 30 มีนาคม 2569"
-    },
-    {
-        title: "พิจารณาแต่งตั้งกรรมการแทนกรรมการที่ครบวาระ",
-        company: "ABC จำกัด",
-        type: "การประชุมคณะกรรมการ",
-        no: "3/2569",
-        date: "28 กุมภาพันธ์ 2569",
-        time: "13:30 น. - 15:00 น.",
-        location: "ห้องประชุมบอร์ดรูม",
-        tags: ["yellow", "red"],
-        agenda: [
-            { title: "วาระที่ 1", topic: "คัดเลือกกรรมการรายใหม่", result: "ที่ประชุมมีมติเลือกคุณสมชาย แทนกรรมการที่ครบวาระ" },
-            { title: "วาระที่ 2", topic: "กำหนดค่าตอบแทนกรรมการ", result: "เห็นชอบให้คงอัตราค่าตอบแทนเดิมไว้" }
-        ],
-        closing: "ประธานขอบคุณกรรมการที่ครบวาระสำหรับการทำงานที่ผ่านมา"
-    },
-    {
-        title: "พิจารณาแผนการควบรวมกิจการ (M&A) กับบริษัทในเครือ",
-        company: "Global Tech",
-        type: "การประชุมวิสามัญ",
-        no: "4/2569",
-        date: "10 มีนาคม 2569",
-        time: "09:00 น. - 17:00 น.",
-        location: "ออนไลน์ (Zoom)",
-        tags: ["blue", "green"],
-        agenda: [
-            { title: "วาระที่ 1", topic: "อนุมัติแผนการควบรวม", result: "ที่ประชุมเห็นชอบในหลักการ" },
-            { title: "วาระที่ 2", topic: "แต่งตั้งที่ปรึกษาทางการเงินอิสระ", result: "แต่งตั้งบริษัท ABC Advisory เข้าดำเนินการ" }
-        ],
-        closing: "ประธานเน้นย้ำเรื่องการรักษาความลับข้อมูลก่อนการเปิดเผยต่อตลาดหลักทรัพย์"
-    },
-    {
-    title: "พิจารณารับรองรายงานการประชุมผู้ถือหุ้นครั้งก่อน",
-    company: "ABC จำกัด",
-    type: "การประชุมสามัญประจำปี",
-    no: "1/2569",
-    date: "24 มกราคม 2569",
-    time: "14:00 น. - 16:00 น.",
-    location: "ห้องประชุม 2",
-    tags: ["red", "yellow"],
-    agenda: [
-        { 
-            title: "วาระที่ 1", 
-            topic: "พิจารณารับรองรายงานการประชุมครั้งที่ผ่านมา", 
-            result: "ที่ประชุมมีมติรับรองรายงานการประชุมครั้งที่ผ่านมาเป็นเอกฉันท์" 
-        },
-        { 
-            title: "วาระที่ 2", 
-            topic: "พิจารณาแนวทางการดำเนินโครงการใหม่", 
-            discussion: "ในระหว่างการพิจารณาวาระนี้ มีถ้อยคำที่กล่าวในที่ประชุมดังนี้ “วาระนี้ขอคุยกว้าง ๆ ไว้ก่อน รายละเอียดค่อยไปใส่ในรายงานประชุม”",
-            warning: "ถ้อยคำดังกล่าวอาจทำให้วาระการประชุมไม่ชัดเจน เสี่ยงต่อการถูกตีความว่าเป็นการพิจารณาเรื่องนอกวาระ หรือไม่ได้แจ้งผู้ถือหุ้นล่วงหน้า หากเรื่องดังกล่าวเข้าข่ายมติ มติอาจไม่ชอบด้วยกฎหมาย",
-            correction: "ประธานที่ประชุมได้สรุปรอบการพิจารณาใหม่ โดยระบุว่า “การประชุมครั้งนี้เป็นเพียงการรับทราบและพิจารณาในหลักการเท่านั้น โดยยังไม่มีการลงมติในประเด็นที่อาจเข้าข่ายมติพิเศษ”",
-            finalResult: "ที่ประชุมมีมติรับทราบแนวคิดหลักและให้ฝ่ายบริหารจัดทำรายละเอียดเพื่อนำเสนอในการประชุมครั้งถัดไป"
-        },
-        { 
-            title: "วาระที่ 3", 
-            topic: "พิจารณาอนุมัติรายการที่อาจมีส่วนได้เสีย", 
-            discussion: "มีกรรมการท่านหนึ่งกล่าวว่า “ถึงจะเกี่ยวข้องกับตัวเอง แต่ก็เป็นกรรมการเหมือนกัน น่าจะโหวตได้”",
-            warning: "ถ้อยคำดังกล่าวเข้าข่ายความเสี่ยง เรื่องผลประโยชน์ทับซ้อน กรรมการที่มีส่วนได้เสียไม่ควรเข้าร่วมอภิปรายและลงมติในวาระนั้น",
-            correction: "กรรมการที่มีส่วนได้เสียลาออกเสียงและออกจากห้องประชุมระหว่างการพิจารณาวาระนี้",
-            finalResult: "ที่ประชุมมีมติอนุมัติรายการดังกล่าวโดยกรรมการที่ไม่มีส่วนได้เสีย",
-            riskSummary: "การใช้ถ้อยคำที่ทำให้วาระการประชุมไม่ชัดเจน, ความเสี่ยงในการพิจารณาเรื่องที่อาจเข้าข่ายวาระพิเศษโดยไม่แจ้งล่วงหน้า, ความเสี่ยงด้านผลประโยชน์ทับซ้อนของกรรมการ"
-        }
-    ],
-    closing: "ประธานที่ประชุมได้สอบถามว่ามีผู้ใดประสงค์จะเสนอเรื่องอื่นใดเพิ่มเติมหรือไม่ เมื่อไม่มีผู้ใดเสนอเรื่องอื่นเพิ่มเติม ประธานจึงได้กล่าวขอบคุณผู้เข้าร่วมประชุมทุกท่านที่ได้สละเวลาเข้าร่วมประชุมและให้ข้อคิดเห็นอันเป็นประโยชน์ต่อบริษัท"
+// ── Language Dropdown Component ───────────────────────────────
+function LanguageDropdown({
+    selected,
+    onChange,
+}: {
+    selected: LanguageKey;
+    onChange: (key: LanguageKey) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    const current = languageOptions.find((l) => l.key === selected)!;
+
+    return (
+        <div className="relative" ref={ref}>
+            <button
+                onClick={() => setOpen((p) => !p)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all text-sm font-medium text-gray-700 shadow-sm"
+            >
+                <span>{current.label}</span>
+                <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown size={14} className="text-gray-400" />
+                </motion.div>
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20"
+                        initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                        transition={{ duration: 0.15 }}
+                    >
+                        {languageOptions.map((lang) => (
+                            <button
+                                key={lang.key}
+                                onClick={() => { onChange(lang.key); setOpen(false); }}
+                                className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm transition-colors
+                                    ${selected === lang.key
+                                        ? "bg-gray-50 text-gray-900 font-medium"
+                                        : "text-gray-600 hover:bg-gray-50"
+                                    }`}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <span>{lang.label}</span>
+                                </span>
+                                {selected === lang.key && (
+                                    <Check size={13} className="text-gray-500 shrink-0" />
+                                )}
+                            </button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
 }
-];
 
+// ── Agenda Item with language-aware content ───────────────────
+function AgendaCard({ item }: { item: AgendaTranslation }) {
+    return (
+        <div className="mb-8">
+            <p className="font-bold text-gray-800 mb-2">
+                {item.title} {item.topic}
+            </p>
+            <div className="text-sm space-y-2">
+                {item.result && (
+                    <p className="text-gray-500">
+                        ผลการพิจารณา:{" "}
+                        <span className="text-gray-700">{item.result}</span>
+                    </p>
+                )}
+                {item.discussion && (
+                    <p className="text-gray-500">การอภิปราย: {item.discussion}</p>
+                )}
+                {item.warning && (
+                    <p className="text-red-500 font-medium mt-2">• {item.warning}</p>
+                )}
+                {item.correction && (
+                    <p className="text-blue-500 text-xs mt-1">✓ {item.correction}</p>
+                )}
+                {item.finalResult && (
+                    <p className="text-green-600 text-xs">→ {item.finalResult}</p>
+                )}
+            </div>
+        </div>
+    );
+}
 
-
+// ── Main Page ─────────────────────────────────────────────────
 export default function SummaryPage() {
-    const [selectedMeeting, setSelectedMeeting] = useState(meetingItems[0]);
+    const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem>(meetingItems[0]);
+    const [language, setLanguage] = useState<LanguageKey>("central");
+
+    // ดึง translation ของการประชุมที่เลือก + ภาษาที่เลือก
+    const translation = meetingTranslations[selectedMeeting.no]?.[language];
+
+    // วาระที่จะแสดง: ถ้ามี translation ให้ใช้ ถ้าไม่มีให้ใช้ข้อมูลเดิม
+    const displayAgendas: AgendaTranslation[] =
+        translation?.agenda ?? selectedMeeting.agenda ?? [];
+
+    const displayClosing = translation?.closing ?? selectedMeeting.closing;
+
     return (
         <motion.div
             className="summary-page"
@@ -132,49 +148,108 @@ export default function SummaryPage() {
                 </motion.button>
             </header>
 
-            <div className="flex gap-6 mt-6 ">
-            <div className="w-76 h-[600px] p-2   overflow-y-auto ">
-                {meetingItems.map((item, index) => (
-                    <div key={index} className="mb-2">
-                        <MeetingSummaryCard 
-                            meeting={item} 
-                            index={index} 
-                            onClick={() => setSelectedMeeting(item)} // คลิกที่นี่
-                        />
-                    </div>
-                ))}
-            </div>
-            
-            {/* ฝั่งขวาแสดงผลตาม state */}
-            <div className="flex-1 flex gap-6">
-            {/* คอลัมน์ย่อย 1: ข้อมูลหลัก */}
-            <div className="flex-1">
-                <MeetingDetailView meeting={selectedMeeting} />
-            </div>  
+            <div className="flex gap-6 mt-6">
+                {/* ── ซ้าย: รายการประชุม ── */}
+                <div className="w-76 h-[600px] p-2 overflow-y-auto">
+                    {meetingItems.map((item, index) => (
+                        <div key={index} className="mb-2">
+                            <MeetingSummaryCard
+                                meeting={item}
+                                index={index}
+                                onClick={() => setSelectedMeeting(item)}
+                            />
+                        </div>
+                    ))}
+                </div>
 
-            {/* คอลัมน์ย่อย 2: สรุปวาระ (ตามรูป) */}
-            <div className="w-96 bg-white border border-gray-200 rounded-2xl mt-5 p-6 shadow-sm flex flex-col h-[600px]">
-            <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                <h3 className="font-bold text-lg">สรุปวาระต่างๆ</h3>
-                <span className="text-xs border px-2 py-1 rounded text-gray-500">PDF</span>
-            </div>
-            
-            {/* สรุปวาระทั้งหมด: ให้ส่วนนี้เลื่อนได้ (Scrollable Content) */}
-            <div className="flex-1 overflow-y-auto pr-2 scroll-container">
-                {selectedMeeting.agenda?.map((item: any, i: number) => (
-                    <div key={i} className="mb-8">
-                        <p className="font-bold text-gray-800 mb-2">{item.title} {item.topic}</p>
-                        <div className="text-sm space-y-2">
-                            <p className="text-gray-500">ผลการพิจารณา: <span className="text-gray-700">{item.result}</span></p>
-                            {item.discussion && <p className="text-gray-500">การอภิปราย: {item.discussion}</p>}
-                            {item.warning && <p className="text-red-500 font-medium mt-2">• {item.warning}</p>}
+                {/* ── ขวา: detail + สรุปวาระ ── */}
+                <div className="flex-1 flex gap-6">
+                    {/* คอลัมน์ 1: ข้อมูลหลัก */}
+                    <div className="flex-1">
+                        <MeetingDetailView meeting={selectedMeeting} />
+                    </div>
+
+                    {/* คอลัมน์ 2: สรุปวาระ + language dropdown */}
+                    <div className="w-96 bg-white border border-gray-200 rounded-2xl mt-5 p-6 shadow-sm flex flex-col h-[600px]">
+
+                        {/* Header + dropdown */}
+                        <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                            <h3 className="font-bold text-lg">สรุปวาระต่างๆ</h3>
+                            <div className="flex items-center gap-2">
+                                <LanguageDropdown
+                                    selected={language}
+                                    onChange={(key) => setLanguage(key)}
+                                />
+                                {/* Download */}
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-all shadow-sm"
+                                    title="ดาวน์โหลด"
+                                    onClick={() => {/* TODO: download logic */}}
+                                >
+                                    <Download size={14} />
+                                </motion.button>
+                                {/* Share */}
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-all shadow-sm"
+                                    title="แชร์"
+                                    onClick={() => {/* TODO: share logic */}}
+                                >
+                                    <Share2 size={14} />
+                                </motion.button>
+                            </div>
+                        </div>
+
+                        {/* Language badge */}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={language}
+                                className="mb-4 flex-shrink-0"
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">
+                                    {languageOptions.find((l) => l.key === language)?.label}
+                                </span>
+                            </motion.div>
+                        </AnimatePresence>
+
+                        {/* Scrollable agenda content */}
+                        <div className="flex-1 overflow-y-auto pr-2 scroll-container">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={`${selectedMeeting.no}-${language}`}
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    transition={{ duration: 0.25 }}
+                                >
+                                    {displayAgendas.map((item, i) => (
+                                        <AgendaCard key={i} item={item} />
+                                    ))}
+
+                                    {/* ปิดประชุม */}
+                                    {displayClosing && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">
+                                                ปิดการประชุม
+                                            </p>
+                                            <p className="text-sm text-gray-600 leading-relaxed">
+                                                {displayClosing}
+                                            </p>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
                     </div>
-                ))}
+                </div>
             </div>
-        </div>
-        </div>
-        </div>
         </motion.div>
     );
 }

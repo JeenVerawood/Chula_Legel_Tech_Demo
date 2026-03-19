@@ -21,6 +21,7 @@ export default function CreateMeetingForm() {
     const options2 = ["ประชุมสามัญผู้ถือหุ้น", "ประชุมวิสามัญผู้ถือหุ้น", "ประชุมคณะกรรมการ"];
     const options3 = ["สามัญ", "วิสามัญ"];
 
+    const [role, setRole] = useState<"shareholder" | "director" | "">("");
     const [selected1, setSelected1] = useState("");
     const [selected2, setSelected2] = useState("");
     const [callerName, setCallerName] = useState("");
@@ -32,6 +33,7 @@ export default function CreateMeetingForm() {
     const [meetingDate, setMeetingDate] = useState("");
     const [meetingDateSent, setMeetingDateSent] = useState("");
     const [agendas, setAgendas] = useState([""]);
+    const [agendaText, setAgendaText] = useState(""); // director only
     const [signerName, setSignerName] = useState("");
     const [signerPosition, setSignerPosition] = useState("");
 
@@ -52,13 +54,22 @@ export default function CreateMeetingForm() {
         new Date(year, month, 1).getDay();
     useEffect(() => {
         const draft = localStorage.getItem("meeting_draft");
-        if (draft) {
-            const savedData = JSON.parse(draft);
-            
-            // ใช้ ID ให้ตรงกับที่ตั้งไว้ใน questions.ts
+        if (!draft) return;
+        const savedData = JSON.parse(draft);
+
+        // บันทึก role
+        if (savedData.role) setRole(savedData.role);
+
+        if (savedData.role === "director") {
+            // กรรมการ flow: d1 = ผู้เรียก, d2 = วาระ (text)
+            if (savedData["d1"]) setCallerName(savedData["d1"]);
+            if (savedData["d2"]) setAgendaText(savedData["d2"]);
+            setSelected2("ประชุมคณะกรรมการ"); // ล็อคประเภทให้อัตโนมัติ
+        } else {
+            // ผู้ถือหุ้น flow: key 1, 2, 3 ตาม questions.ts
             if (savedData["1"]) setSelected2(savedData["1"]); // ประเภทประชุม
             if (savedData["2"]) setCallerName(savedData["2"]); // ชื่อผู้เรียก
-            if (savedData["3"]) setAgendas(savedData["3"]);    // วาระการประชุม
+            if (savedData["3"]) setAgendas(savedData["3"]);    // วาระ (array)
         }
     }, []);
     const changeMonth = (offset: number) => {
@@ -135,9 +146,10 @@ export default function CreateMeetingForm() {
 
     const handleSave = () => {
         const isSigEmpty = sigCanvas.current ? sigCanvas.current.isEmpty() : true;
+        const isDirector = role === "director";
         const newErrors: { [key: string]: boolean } = {
             companyType: !selected1,
-            meetingType: !selected2,
+            meetingType: isDirector ? false : !selected2,   // กรรมการ ไม่ต้องเลือกประเภท
             caller: !callerName.trim(),
             subject: !subject.trim(),
             meetingNo: !meetingNo.trim(),
@@ -148,7 +160,7 @@ export default function CreateMeetingForm() {
             dateSent: !meetingDateSent,
             signer: !signerName.trim(),
             position: !signerPosition.trim(),
-            agendas: agendas.some((a) => !a.trim()),
+            agendas: isDirector ? !agendaText.trim() : agendas.some((a) => !a.trim()),
             signature: isSigEmpty,
         };
         setErrors(newErrors);
@@ -293,36 +305,21 @@ export default function CreateMeetingForm() {
                         )}
                     </div>
                     <div className="create-form-select-wrapper">
-                        <button
-                            onClick={() => { closeAllDropdowns(); setIsOpen2(!isOpen2); }}
-                            className={`create-form-select ${errors.meetingType ? "create-form-select-error" : ""}`}
-                        >
-                            <span className={selected2 ? "" : "create-form-placeholder"}>
-                                {selected2 || "คลิกเลือกประเภท..."}
-                            </span>
-                            {/* <ChevronDown size={18} /> */}
-                        </button>
-                        {/* {isOpen2 && (
-                            <motion.div
-                                className="create-form-dropdown"
-                                initial={{ opacity: 0, y: -4 }}
-                                animate={{ opacity: 1, y: 0 }}
+                        {role === "director" ? (
+                            /* กรรมการ — ไม่มีประเภท แสดง dash */
+                            <div className="create-form-input bg-gray-50 text-gray-400 pointer-events-none select-none">
+                                -
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { closeAllDropdowns(); setIsOpen2(!isOpen2); }}
+                                className={`create-form-select ${errors.meetingType ? "create-form-select-error" : ""}`}
                             >
-                                {options2.map((opt) => (
-                                    <button
-                                        key={opt}
-                                        onClick={() => {
-                                            setSelected2(opt);
-                                            setIsOpen2(false);
-                                            setErrors({ ...errors, meetingType: false });
-                                        }}
-                                        className="create-form-dropdown-item"
-                                    >
-                                        {opt}
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )} */}
+                                <span className={selected2 ? "" : "create-form-placeholder"}>
+                                    {selected2 || "คลิกเลือกประเภท..."}
+                                </span>
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -487,15 +484,21 @@ export default function CreateMeetingForm() {
                     <div className="create-form-field-header">
                         <label>วาระการประชุม</label>
                     </div>
-                    <div className="bg-gray-50  p-4 rounded-lg border  border-gray-100">
-                        {agendas.length > 0 ? (
-                            <ul className="list-decimal pl-5 text-sm space-y-1 ">
-                                {agendas.map((agenda, index) => (
-                                    <li key={index} className="text-gray-700">{agenda}</li>
-                                ))}
-                            </ul>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 min-h-[60px]">
+                        {role === "director" ? (
+                            agendaText
+                                ? <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{agendaText}</p>
+                                : <span className="text-gray-400 text-sm">ไม่มีข้อมูลวาระ...</span>
                         ) : (
-                            <span className="text-gray-400 text-sm">ไม่มีข้อมูลวาระ...</span>
+                            agendas.filter(Boolean).length > 0 ? (
+                                <ul className="list-decimal pl-5 text-sm space-y-1">
+                                    {agendas.filter(Boolean).map((agenda, index) => (
+                                        <li key={index} className="text-gray-700">{agenda}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <span className="text-gray-400 text-sm">ไม่มีข้อมูลวาระ...</span>
+                            )
                         )}
                     </div>
                 </div>
