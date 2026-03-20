@@ -79,7 +79,7 @@ export const meetingItems: MeetingItem[] = [
         date: "10 มีนาคม 2569",
         time: "10:00 น.",
         location: "ห้องประชุม 1 บริษัท ABC แขวงพญาไท เขตราชเทวี กรุงเทพมหานคร",
-        tags: ["red", "blue"],
+        tags: ["red", "yellow"],
         audioUrls: {
             central: "/mp3/กลาง-.mp3",
             isan:    "/mp3/อีสาน-.mp3",
