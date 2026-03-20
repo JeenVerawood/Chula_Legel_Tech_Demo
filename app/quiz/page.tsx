@@ -69,7 +69,10 @@ function RoleSelection({ onSelect }: { onSelect: (role: "shareholder" | "directo
                             <p className="font-semibold text-gray-800">{label}</p>
                             <p className="text-xs text-gray-400 mt-1">{sub}</p>
                         </div>
-                        
+                        <ChevronRight
+                            size={15}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 group-hover:text-gray-600 transition-colors"
+                        />
                     </motion.button>
                 ))}
             </div>
@@ -85,13 +88,22 @@ function ShareholderQuiz({ onDone }: { onDone: (answers: any) => void }) {
     const [answers, setAnswers] = useState<any>({});
     const [inputValue, setInputValue] = useState("");
     const [selectedAgendas, setSelectedAgendas] = useState<string[]>([]);
+    const [otherText, setOtherText] = useState("");       // ค่า input "อื่นๆ"
+    const [otherChecked, setOtherChecked] = useState(false); // toggle checkbox อื่นๆ
     const [errorMsg, setErrorMsg] = useState("");
 
     const authorizedNames = ["สมชาย ใจดี", "วิภา เรียนรู้", "จีน"];
     const currentQuestion = questions[step];
 
     const handleNext = (value: any) => {
-        const newAnswers = { ...answers, [currentQuestion.id]: value };
+        // ถ้าเป็น step วาระ ให้รวม otherText เข้าด้วย
+        let finalValue = value;
+        if (currentQuestion.type === "agenda") {
+            const extras = otherChecked && otherText.trim() ? [otherText.trim()] : [];
+            finalValue = [...(value as string[]), ...extras];
+        }
+
+        const newAnswers = { ...answers, [currentQuestion.id]: finalValue };
         setAnswers(newAnswers);
 
         if (currentQuestion.type === "input") {
@@ -104,6 +116,8 @@ function ShareholderQuiz({ onDone }: { onDone: (answers: any) => void }) {
             setStep((p) => p + 1);
             setInputValue("");
             setSelectedAgendas([]);
+            setOtherText("");
+            setOtherChecked(false);
             setErrorMsg("");
         } else {
             onDone(newAnswers);
@@ -193,6 +207,7 @@ function ShareholderQuiz({ onDone }: { onDone: (answers: any) => void }) {
                                             <h3 className="font-bold text-sm mb-2 uppercase text-gray-500">
                                                 {type === "regularAgendas" ? "มติธรรมดา" : "มติพิเศษ"}
                                             </h3>
+
                                             {(currentQuestion as any)[type]?.map((item: string) => (
                                                 <label
                                                     key={item}
@@ -206,6 +221,47 @@ function ShareholderQuiz({ onDone }: { onDone: (answers: any) => void }) {
                                                     <span className="text-gray-700">{item}</span>
                                                 </label>
                                             ))}
+
+                                            {/* อื่นๆ — เฉพาะ regularAgendas */}
+                                            {type === "regularAgendas" && (
+                                                <div className=" pt-2 mt-1">
+                                                    <label className="flex items-start gap-3 py-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="mt-0.5"
+                                                            checked={otherChecked}
+                                                            onChange={(e) => {
+                                                                setOtherChecked(e.target.checked);
+                                                                if (!e.target.checked) setOtherText("");
+                                                            }}
+                                                        />
+                                                        <div className="flex-1">
+                                                            <span className="text-gray-700">อื่นๆ</span>
+                                                            <AnimatePresence>
+                                                                {otherChecked && (
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0, height: 0 }}
+                                                                        animate={{ opacity: 1, height: "auto" }}
+                                                                        exit={{ opacity: 0, height: 0 }}
+                                                                        transition={{ duration: 0.2 }}
+                                                                        className="overflow-hidden"
+                                                                    >
+                                                                        <input
+                                                                            autoFocus
+                                                                            type="text"
+                                                                            className="create-form-input mt-2 text-sm"
+                                                                            placeholder="ระบุวาระอื่นๆ..."
+                                                                            value={otherText}
+                                                                            onChange={(e) => setOtherText(e.target.value)}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        />
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

@@ -14,10 +14,11 @@ import {
     type AgendaTranslation,
 } from "../data/meetingTranslations";
 
-// ── Language Dropdown Component ───────────────────────────────
+// ── Language Dropdown ─────────────────────────────────────────
 function LanguageDropdown({
     selected,
     onChange,
+
 }: {
     selected: LanguageKey;
     onChange: (key: LanguageKey) => void;
@@ -50,7 +51,7 @@ function LanguageDropdown({
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20"
+                        className="absolute right-0 top-full mt-1.5  w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-20"
                         initial={{ opacity: 0, y: -6, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.96 }}
@@ -66,9 +67,7 @@ function LanguageDropdown({
                                         : "text-gray-600 hover:bg-gray-50"
                                     }`}
                             >
-                                <span className="flex items-center gap-2">
-                                    <span>{lang.label}</span>
-                                </span>
+                                <span>{lang.label}</span>
                                 {selected === lang.key && (
                                     <Check size={13} className="text-gray-500 shrink-0" />
                                 )}
@@ -81,13 +80,21 @@ function LanguageDropdown({
     );
 }
 
-// ── Audio Play Button Component ───────────────────────────────
-function AudioPlayButton({ audioUrl }: { audioUrl?: string }) {
+// ── Audio Play Button ─────────────────────────────────────────
+// audioUrl และ language เป็น dependency —
+// เมื่อเปลี่ยนภาษาหรือเปลี่ยน card จะหยุดเสียงและโหลด mp3 ใหม่อัตโนมัติ
+function AudioPlayButton({
+    audioUrl,
+    language,
+}: {
+    audioUrl?: string;
+    language: LanguageKey;
+}) {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // หยุดเสียงเมื่อ audioUrl เปลี่ยน (เปลี่ยน card)
     useEffect(() => {
+        // หยุดและ reset เสียงเดิมก่อน
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
@@ -96,20 +103,16 @@ function AudioPlayButton({ audioUrl }: { audioUrl?: string }) {
 
         if (audioUrl) {
             audioRef.current = new Audio(audioUrl);
-            // เมื่อเล่นจบให้ reset
             audioRef.current.addEventListener("ended", () => setIsPlaying(false));
         } else {
             audioRef.current = null;
         }
 
-        return () => {
-            audioRef.current?.pause();
-        };
-    }, [audioUrl]);
+        return () => { audioRef.current?.pause(); };
+    }, [audioUrl, language]); // ← ทั้ง audioUrl และ language เป็น dependency
 
     const handleToggle = () => {
         if (!audioRef.current) return;
-
         if (isPlaying) {
             audioRef.current.pause();
             setIsPlaying(false);
@@ -129,10 +132,8 @@ function AudioPlayButton({ audioUrl }: { audioUrl?: string }) {
             disabled={!hasAudio}
             title={
                 !hasAudio
-                    ? "ไม่มีไฟล์เสียง"
-                    : isPlaying
-                        ? "หยุดเสียง"
-                        : "เล่นเสียง"
+                    ? "ไม่มีไฟล์เสียงสำเนียงนี้"
+                    : isPlaying ? "หยุดเสียง" : "เล่นเสียง"
             }
             className={`
                 flex items-center justify-center w-8 h-8 rounded-lg border transition-all shadow-sm
@@ -146,22 +147,16 @@ function AudioPlayButton({ audioUrl }: { audioUrl?: string }) {
         >
             <AnimatePresence mode="wait">
                 {isPlaying ? (
-                    <motion.div
-                        key="pause"
-                        initial={{ scale: 0.7, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.7, opacity: 0 }}
-                        transition={{ duration: 0.15 }}
+                    <motion.div key="pause"
+                        initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.7, opacity: 0 }} transition={{ duration: 0.15 }}
                     >
                         <Pause size={14} />
                     </motion.div>
                 ) : (
-                    <motion.div
-                        key="play"
-                        initial={{ scale: 0.7, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.7, opacity: 0 }}
-                        transition={{ duration: 0.15 }}
+                    <motion.div key="play"
+                        initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.7, opacity: 0 }} transition={{ duration: 0.15 }}
                     >
                         <Volume2 size={14} />
                     </motion.div>
@@ -171,32 +166,21 @@ function AudioPlayButton({ audioUrl }: { audioUrl?: string }) {
     );
 }
 
-// ── Agenda Item with language-aware content ───────────────────
+// ── Agenda Card ───────────────────────────────────────────────
 function AgendaCard({ item }: { item: AgendaTranslation }) {
     return (
         <div className="mb-8">
-            <p className="font-bold text-gray-800 mb-2">
-                {item.title} {item.topic}
-            </p>
+            <p className="font-bold text-gray-800 mb-2">{item.title} {item.topic}</p>
             <div className="text-sm space-y-2">
                 {item.result && (
                     <p className="text-gray-500">
-                        ผลการพิจารณา:{" "}
-                        <span className="text-gray-700">{item.result}</span>
+                        ผลการพิจารณา: <span className="text-gray-700">{item.result}</span>
                     </p>
                 )}
-                {item.discussion && (
-                    <p className="text-gray-500">การอภิปราย: {item.discussion}</p>
-                )}
-                {item.warning && (
-                    <p className="text-red-500 font-medium mt-2">• {item.warning}</p>
-                )}
-                {item.correction && (
-                    <p className="text-blue-500 text-xs mt-1">✓ {item.correction}</p>
-                )}
-                {item.finalResult && (
-                    <p className="text-green-600 text-xs">→ {item.finalResult}</p>
-                )}
+                {item.discussion && <p className="text-gray-500">การอภิปราย: {item.discussion}</p>}
+                {item.warning && <p className="text-red-500 font-medium mt-2">• {item.warning}</p>}
+                {item.correction && <p className="text-blue-500 text-xs mt-1">✓ {item.correction}</p>}
+                {item.finalResult && <p className="text-green-600 text-xs">→ {item.finalResult}</p>}
             </div>
         </div>
     );
@@ -208,9 +192,11 @@ export default function SummaryPage() {
     const [language, setLanguage] = useState<LanguageKey>("central");
 
     const translation = meetingTranslations[selectedMeeting.no]?.[language];
-    const displayAgendas: AgendaTranslation[] =
-        translation?.agenda ?? selectedMeeting.agenda ?? [];
+    const displayAgendas: AgendaTranslation[] = translation?.agenda ?? selectedMeeting.agenda ?? [];
     const displayClosing = translation?.closing ?? selectedMeeting.closing;
+
+    // ── ดึง audioUrl ตามภาษาที่เลือก ──────────────────────────
+    const currentAudioUrl = selectedMeeting.audioUrls?.[language];
 
     return (
         <motion.div
@@ -248,47 +234,44 @@ export default function SummaryPage() {
                     ))}
                 </div>
 
-                {/* ── ขวา: detail + สรุปวาระ ── */}
+                {/* ── ขวา ── */}
                 <div className="flex-1 flex gap-6">
-                    {/* คอลัมน์ 1: ข้อมูลหลัก */}
                     <div className="flex-1">
                         <MeetingDetailView meeting={selectedMeeting} />
                     </div>
 
-                    {/* คอลัมน์ 2: สรุปวาระ + language dropdown + audio */}
+                    {/* สรุปวาระ */}
                     <div className="w-96 bg-white border border-gray-200 rounded-2xl mt-5 p-6 shadow-sm flex flex-col h-[600px]">
 
                         {/* Header + controls */}
                         <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                            <h3 className="font-bold text-lg">สรุปวาระต่างๆ</h3>
+                            <h3 className="font-bold text-lg">สรุปวาระ</h3>
                             <div className="flex items-center gap-2">
-                                {/* Language Dropdown */}
-                                <LanguageDropdown
+                                <LanguageDropdown 
                                     selected={language}
                                     onChange={(key) => setLanguage(key)}
                                 />
 
-                                {/* ── ปุ่มเล่นเสียง (ข้างๆ language dropdown) ── */}
-                                <AudioPlayButton audioUrl={selectedMeeting.audioUrl} />
+                                {/* ปุ่มเล่นเสียง — mp3 เปลี่ยนตามภาษาและการประชุม */}
+                                <AudioPlayButton
+                                    audioUrl={currentAudioUrl}
+                                    language={language}
+                                />
 
                                 {/* Download */}
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                                     className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-all shadow-sm"
                                     title="ดาวน์โหลด"
-                                    onClick={() => {/* TODO: download logic */}}
                                 >
                                     <Download size={14} />
                                 </motion.button>
 
                                 {/* Share */}
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                                     className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 transition-all shadow-sm"
                                     title="แชร์"
-                                    onClick={() => {/* TODO: share logic */}}
                                 >
                                     <Share2 size={14} />
                                 </motion.button>
@@ -305,13 +288,13 @@ export default function SummaryPage() {
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">
+                                {/* <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">
                                     {languageOptions.find((l) => l.key === language)?.label}
-                                </span>
+                                </span> */}
                             </motion.div>
                         </AnimatePresence>
 
-                        {/* Scrollable agenda content */}
+                        {/* Scrollable agenda */}
                         <div className="flex-1 overflow-y-auto pr-2 scroll-container">
                             <AnimatePresence mode="wait">
                                 <motion.div

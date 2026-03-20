@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Plus, Radio, FolderUp, LayoutDashboard, ClipboardList, ArrowRight, Loader2 } from "lucide-react";
+import { ChevronDown, Plus, Radio, FolderUp, LayoutDashboard, ClipboardList, ArrowRight, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -137,7 +137,8 @@ export default function Navbar() {
                     </div>
 
                     {/* Code Input */}
-                    <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5">
+                    <div className="flex gap-2">
+                        <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5">
                         <span className="text-xs font-medium text-gray-400 uppercase tracking-widest select-none">
                             CODE
                         </span>
@@ -192,6 +193,22 @@ export default function Navbar() {
                             )}
                         </AnimatePresence>
                     </div>
+
+                    {/* คู่มือการใช้งาน */}
+                    <a
+                        href="/manual.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <motion.button
+                            className="flex items-center gap-1.5 p-3   rounded-lg bg-gray-100 border border-gray-200 font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                        >
+                            <BookOpen size={16} />
+                        </motion.button>
+                    </a>
+                    </div>
                 </div>
             </nav>
 
@@ -211,4 +228,4 @@ export default function Navbar() {
             />
         </>
     );
-}
+}   
