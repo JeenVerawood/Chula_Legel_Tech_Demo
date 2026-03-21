@@ -146,7 +146,7 @@ input {
 .navbar {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 40;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -214,7 +214,7 @@ input {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     padding: var(--space-1);
-    z-index: 110;
+    z-index: 50;
 }
 
 .navbar-dropdown-item {
@@ -698,7 +698,7 @@ input {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     padding: var(--space-1);
-    z-index: 60;
+    z-index: 45;
 }
 
 .create-form-dropdown-item {

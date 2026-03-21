@@ -92,7 +92,7 @@ function ShareholderQuiz({ onDone }: { onDone: (answers: any) => void }) {
     const [otherChecked, setOtherChecked] = useState(false); // toggle checkbox อื่นๆ
     const [errorMsg, setErrorMsg] = useState("");
 
-    const authorizedNames = ["สมชาย ใจดี", "วิภา เรียนรู้", "จีน"];
+    const authorizedNames = ["สมชาย ใจดี", "วิภา เรียนรู้"];
     const currentQuestion = questions[step];
 
     const handleNext = (value: any) => {

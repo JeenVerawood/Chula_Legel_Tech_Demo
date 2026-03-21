@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import WelcomeCard from "./components/Welcomecard";
 
 export const metadata: Metadata = {
   title: "PACTA - ระบบจัดการประชุมทางกฎหมาย",
@@ -17,6 +18,7 @@ export default function RootLayout({
       <body>
         <div className="app-shell">
           <Navbar />
+          <WelcomeCard />
           <main className="app-main">
             {children}
           </main>
