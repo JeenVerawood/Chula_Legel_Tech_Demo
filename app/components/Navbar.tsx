@@ -196,7 +196,7 @@ export default function Navbar() {
 
                     {/* คู่มือการใช้งาน */}
                     <a
-                        href="/manual.pdf"
+                        href="pdf/test1.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
