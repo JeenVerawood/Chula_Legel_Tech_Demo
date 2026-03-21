@@ -39,7 +39,7 @@ export default function WelcomeCard() {
                             <div className="relative w-full aspect-video bg-black">
                                 <video
                                     className="h-full object-cover"
-                                    src="/mp4/final.mov"
+                                    src="/mp4/final2.mov"
                                     autoPlay
                                     loop
                                     muted 
