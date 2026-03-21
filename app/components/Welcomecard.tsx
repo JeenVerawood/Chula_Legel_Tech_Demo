@@ -39,9 +39,10 @@ export default function WelcomeCard() {
                             <div className="relative w-full aspect-video bg-black">
                                 <video
                                     className="h-full object-cover"
-                                    src="/mp4/test.mp4"
+                                    src="/mp4/final.mov"
                                     autoPlay
                                     loop
+                                    muted 
                                     playsInline
                                     controls
 
